@@ -29,7 +29,7 @@ Example Code:
     loss_history = sess.run([descent_history['losses']])
     print loss_history
 
-The code for algorithm is fairly straightforward. Here, for instance, is the definition of regret_descent_nag (17 lines excluding comments):
+The code for algorithm is fairly straightforward. Here, for instance, is the definition of regret_descent_nag (17 lines excluding docstring):
 
     def regret_descent_nag(loss, init_parameters, learning_rate, gamma,
                            learning_rate_learning_rate, gamma_learning_rate,
