@@ -65,8 +65,8 @@ def regret_descent_nag(loss, init_parameters, learning_rate, gamma,
         final_parameters:
             Tensorflow variable. Optimized parameters minimizing the loss function
         descent_history:
-            Dictionary. Keys: ['parameters', 'losses']. Values: lists of
-            tensorflow variables
+            Dictionary. Keys: ['parameters', 'losses', 'learning_rates',
+            'gammas']. Values: lists of tensorflow variables
     """
     points = [init_parameters]
     losses = [loss(init_parameters)]
