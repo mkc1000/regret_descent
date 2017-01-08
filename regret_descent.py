@@ -91,7 +91,47 @@ def regret_descent_nag(loss, init_parameters, learning_rate, gamma,
                        'gammas' : gammas}
     return points[-1], descent_history
 
+def inv_sigmoid(var):
+    return -tf.log((1. / var) - 1.)
+
+def regret_descent_adam(loss, init_parameters, learning_rate, beta_1, beta_2
+                        learning_rate_learning_rate, beta_1_learning_rate,
+                        beta_2_learning_rate, n_steps, epsilon=10**(-8)):
+    points = [init_parameters]
+    losses = [loss(init_parameters)]
+    gradients = [tf.stop_gradient(tf.gradients(loss(init_parameters), init_parameters)[0])]
+    momenta = [gradients[0]]
+    vs = [tf.square(gradients[0])]
+    learning_rates = [learning_rate]
+    beta_1s = [inv_sigmoid(beta_1)]
+    beta_2s = [inv_sigmoid(beta_2)]
+    for step in xrange(n_steps):
+        if step != 0:
+            gradients.append(tf.stop_gradient(tf.gradients(loss(points[-1]), points[-1])[0]))
+        beta_1 = tf.nn.sigmoid(beta_1s[-1])
+        beta_2 = tf.nn.sigmoid(beta_2s[-1])
+        momenta.append(beta_1 * momenta[-1] + (1 - beta_1) * gradients[-1])
+        vs.append(beta_2 * vs[-1] + (1 - beta_2) * tf.square(gradients[-1]))
+        m_hat = momenta[-1] / (1 - beta_1**step)
+        v_hat = vs[-1] / (1 - beta_2**step)
+        points.append(points[-1] - learning_rates[-1] * m_hat / (tf.sqrt(v_hat) + epsilon))
+        # Update optimization parameters
+        lr_gradient = tf.gradients(loss[-1], learning_rates[-1])[0]
+        beta_1_gradient = tf.gradients(loss[-1], beta_1s[-1])[0]
+        beta_2_gradient = tf.gradients(loss[-1], beta_2s[-1])[0]
+        learning_rates.append(learning_rates[-1] - learning_rate_learning_rate * lr_gradient)
+        beta_1s.append(beta_1s[-1] - beta_1_learning_rate * beta_1_gradient)
+        beta_2s.append(beta_2s[-1] - beta_2_learning_rate * beta_2_gradient)
+    descent_history = {'parameters' : points,
+                       'losses' : losses,
+                       'learning_rates' : learning_rates,
+                       'beta_1s' : beta_1s,
+                       'beta_2s' : beta_2s}
+    return points[-1], descent_history
+
+################################################################################
 # Basic tests
+################################################################################
 
 def test_loss(parameters):
     return tf.reduce_sum(tf.square(parameters))
